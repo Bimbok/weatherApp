@@ -72,7 +72,39 @@ document.addEventListener('DOMContentLoaded', function() {
     // Location handling
     const getLocationBtn = document.getElementById('get-location');
     const locationStatus = document.getElementById('location-status');
+    const autoDetectToggle = document.getElementById('auto-detect-toggle');
     let isLocationRequestInProgress = false;
+
+    async function fetchWeatherData(lat, lon) {
+        try {
+            const response = await fetch(`/weather-location?lat=${lat}&lon=${lon}`);
+            const html = await response.text();
+            
+            // Create a temporary div to parse the HTML
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            
+            // Extract the weather info section
+            const weatherInfo = tempDiv.querySelector('.weather-info');
+            if (weatherInfo) {
+                // Replace the existing weather info or add it if it doesn't exist
+                const existingWeatherInfo = document.querySelector('.weather-info');
+                if (existingWeatherInfo) {
+                    existingWeatherInfo.replaceWith(weatherInfo);
+                } else {
+                    document.querySelector('.weather-container').appendChild(weatherInfo);
+                }
+                
+                // Hide the location status
+                locationStatus.style.display = 'none';
+                isLocationRequestInProgress = false;
+            }
+        } catch (error) {
+            locationStatus.textContent = 'Error fetching weather data. Please try again.';
+            locationStatus.className = 'mt-2 text-danger';
+            isLocationRequestInProgress = false;
+        }
+    }
 
     function getLocation() {
         if (isLocationRequestInProgress) return;
@@ -92,8 +124,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     const longitude = position.coords.longitude;
                     locationStatus.textContent = 'Location found! Fetching weather...';
                     
-                    // Send coordinates to the server
-                    window.location.href = `/weather-location?lat=${latitude}&lon=${longitude}`;
+                    // Fetch weather data without page reload
+                    fetchWeatherData(latitude, longitude);
                 },
                 // Error callback
                 function(error) {
@@ -129,26 +161,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    if (getLocationBtn) {
-        getLocationBtn.addEventListener('click', getLocation);
-    }
-
-    // Auto-detect location on page load (if user wants)
-    function autoDetectLocation() {
-        if (localStorage.getItem('autoDetectLocation') === 'true' && navigator.geolocation) {
-            getLocationBtn.click();
-        }
-    }
-
-    // Add toggle for auto-detection
-    const autoDetectToggle = document.getElementById('auto-detect-toggle');
+    // Initialize auto-detect toggle state
     if (autoDetectToggle) {
-        // Initialize toggle state from localStorage
         autoDetectToggle.checked = localStorage.getItem('autoDetectLocation') === 'true';
-        
+    }
+
+    // Handle auto-detect toggle changes
+    if (autoDetectToggle) {
         autoDetectToggle.addEventListener('change', function() {
             if (this.checked) {
-                // Show confirmation dialog
                 if (confirm('Would you like to enable automatic location detection? This will fetch your location each time you open the app.')) {
                     localStorage.setItem('autoDetectLocation', 'true');
                     // Only get location if we're not already showing weather data
@@ -163,6 +184,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 locationStatus.style.display = 'none';
             }
         });
+    }
+
+    // Handle manual location button click
+    if (getLocationBtn) {
+        getLocationBtn.addEventListener('click', getLocation);
     }
 
     // Run auto-detection on page load only if we're not already showing weather data

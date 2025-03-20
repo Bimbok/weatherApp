@@ -1,0 +1,47 @@
+<% if (weather) { %>
+    <div class="weather-info animate__animated animate__fadeIn">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title text-center"><%= weather.name %>, <%= weather.sys.country %></h2>
+                <div class="weather-details">
+                    <div class="temperature">
+                        <h3 class="display-4 text-center"><%= Math.round(weather.main.temp) %>°C</h3>
+                        <p class="text-center"><%= weather.weather[0].description %></p>
+                        <div class="text-center">
+                            <img src="https://openweathermap.org/img/wn/<%= weather.weather[0].icon %>@2x.png" alt="<%= weather.weather[0].description %>" class="weather-icon">
+                        </div>
+                    </div>
+                    <div class="weather-stats">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <p><i class="fas fa-droplet me-2"></i><strong>Humidity:</strong> <%= weather.main.humidity %>%</p>
+                            </div>
+                            <div class="col-md-4">
+                                <p><i class="fas fa-wind me-2"></i><strong>Wind:</strong> <%= weather.wind.speed %> m/s</p>
+                            </div>
+                            <div class="col-md-4">
+                                <p><i class="fas fa-temperature-half me-2"></i><strong>Feels like:</strong> <%= Math.round(weather.main.feels_like) %>°C</p>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-4">
+                                <p><i class="fas fa-gauge me-2"></i><strong>Pressure:</strong> <%= weather.main.pressure %> hPa</p>
+                            </div>
+                            <div class="col-md-4">
+                                <p><i class="fas fa-cloud me-2"></i><strong>Cloudiness:</strong> <%= weather.clouds.all %>%</p>
+                            </div>
+                            <div class="col-md-4">
+                                <p><i class="fas fa-eye me-2"></i><strong>Visibility:</strong> <%= weather.visibility / 1000 %> km</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center mt-4">
+                        <a href="/forecast/<%= weather.name %>/<%= weather.sys.country %>" class="btn btn-outline-primary">
+                            <i class="fas fa-calendar-alt me-2"></i>View 5-Day Forecast
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<% } %> 

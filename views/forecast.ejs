@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Forecast</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <button class="theme-toggle animate__animated animate__fadeIn" id="theme-toggle" aria-label="Toggle theme">
+        <i class="fas fa-moon"></i>
+    </button>
+
+    <div class="container">
+        <div class="weather-container animate__animated animate__fadeIn">
+            <div class="header-section text-center mb-4">
+                <h1 class="greeting mb-2" id="greeting-text"></h1>
+                <div class="time-display">
+                    <span id="current-time" class="current-time"></span>
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <a href="/" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Current Weather
+                </a>
+                <h2 class="m-0 text-center">5-Day Forecast for <%= city %>, <%= country %></h2>
+            </div>
+
+            <% if (error) { %>
+                <div class="alert alert-danger animate__animated animate__shakeX">
+                    <%= error %>
+                </div>
+            <% } %>
+
+            <% if (forecast && forecast.list) { %>
+                <div class="forecast-container animate__animated animate__fadeIn">
+                    <% 
+                        // Group forecast by day
+                        let forecastByDay = {};
+                        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                        
+                        forecast.list.forEach(item => {
+                            const date = new Date(item.dt * 1000);
+                            const day = date.toISOString().split('T')[0]; // YYYY-MM-DD
+                            
+                            if (!forecastByDay[day]) {
+                                forecastByDay[day] = {
+                                    dayName: days[date.getDay()],
+                                    date: `${date.getDate()}/${date.getMonth() + 1}`,
+                                    items: []
+                                };
+                            }
+                            
+                            forecastByDay[day].items.push(item);
+                        });
+                    %>
+
+                    <div class="daily-forecast-tabs">
+                        <ul class="nav nav-tabs" id="forecastTab" role="tablist">
+                            <% Object.keys(forecastByDay).forEach((day, index) => { %>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link <%= index === 0 ? 'active' : '' %>" 
+                                            id="day<%= index %>-tab" 
+                                            data-bs-toggle="tab" 
+                                            data-bs-target="#day<%= index %>" 
+                                            type="button" 
+                                            role="tab" 
+                                            aria-controls="day<%= index %>" 
+                                            aria-selected="<%= index === 0 ? 'true' : 'false' %>">
+                                        <%= forecastByDay[day].dayName %> (<%= forecastByDay[day].date %>)
+                                    </button>
+                                </li>
+                            <% }); %>
+                        </ul>
+                        
+                        <div class="tab-content pt-4" id="forecastTabContent">
+                            <% Object.keys(forecastByDay).forEach((day, index) => { %>
+                                <div class="tab-pane fade <%= index === 0 ? 'show active' : '' %>" 
+                                     id="day<%= index %>" 
+                                     role="tabpanel" 
+                                     aria-labelledby="day<%= index %>-tab">
+                                    
+                                    <div class="day-summary mb-4">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <h3 class="card-title"><%= forecastByDay[day].dayName %>, <%= forecastByDay[day].date %></h3>
+                                                <div class="day-stats d-flex justify-content-around flex-wrap">
+                                                    <% 
+                                                        // Get min and max temps for the day
+                                                        let temps = forecastByDay[day].items.map(item => item.main.temp);
+                                                        let minTemp = Math.round(Math.min(...temps));
+                                                        let maxTemp = Math.round(Math.max(...temps));
+                                                        
+                                                        // Get most common weather condition
+                                                        let weatherCounts = {};
+                                                        forecastByDay[day].items.forEach(item => {
+                                                            const desc = item.weather[0].description;
+                                                            weatherCounts[desc] = (weatherCounts[desc] || 0) + 1;
+                                                        });
+                                                        let mostCommonWeather = Object.keys(weatherCounts).reduce((a, b) => 
+                                                            weatherCounts[a] > weatherCounts[b] ? a : b);
+                                                        
+                                                        // Get most frequent icon
+                                                        let iconCounts = {};
+                                                        forecastByDay[day].items.forEach(item => {
+                                                            const icon = item.weather[0].icon;
+                                                            iconCounts[icon] = (iconCounts[icon] || 0) + 1;
+                                                        });
+                                                        let mostCommonIcon = Object.keys(iconCounts).reduce((a, b) => 
+                                                            iconCounts[a] > iconCounts[b] ? a : b);
+                                                    %>
+                                                    <div class="stat-block text-center">
+                                                        <img src="https://openweathermap.org/img/wn/<%= mostCommonIcon %>@2x.png" alt="<%= mostCommonWeather %>" class="weather-icon-lg">
+                                                        <p class="daily-weather-desc"><%= mostCommonWeather %></p>
+                                                    </div>
+                                                    <div class="stat-block text-center">
+                                                        <p class="daily-temp-range">
+                                                            <span class="min-temp"><i class="fas fa-temperature-arrow-down"></i> <%= minTemp %>°C</span>
+                                                            <span class="max-temp"><i class="fas fa-temperature-arrow-up"></i> <%= maxTemp %>°C</span>
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <h4 class="hourly-title mb-3">Hourly Forecast</h4>
+                                    <div class="hourly-forecast">
+                                        <div class="row">
+                                            <% forecastByDay[day].items.forEach(item => { 
+                                                const itemDate = new Date(item.dt * 1000);
+                                                const hour = itemDate.getHours();
+                                                const formattedHour = hour.toString().padStart(2, '0') + ':00';
+                                            %>
+                                                <div class="col-md-4 col-lg-3 mb-3">
+                                                    <div class="card hourly-card">
+                                                        <div class="card-body">
+                                                            <h5 class="card-title text-center"><%= formattedHour %></h5>
+                                                            <div class="text-center">
+                                                                <img src="https://openweathermap.org/img/wn/<%= item.weather[0].icon %>.png" alt="<%= item.weather[0].description %>" class="hourly-icon">
+                                                                <p class="hourly-temp"><%= Math.round(item.main.temp) %>°C</p>
+                                                                <p class="hourly-desc"><%= item.weather[0].description %></p>
+                                                            </div>
+                                                            <div class="hourly-details mt-2">
+                                                                <p><i class="fas fa-droplet me-1"></i> <%= item.main.humidity %>%</p>
+                                                                <p><i class="fas fa-wind me-1"></i> <%= item.wind.speed %> m/s</p>
+                                                                <p><i class="fas fa-cloud me-1"></i> <%= item.clouds.all %>%</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            <% }); %>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        </div>
+                    </div>
+                </div>
+            <% } %>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+</html> 
