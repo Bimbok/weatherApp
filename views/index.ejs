@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <button class="theme-toggle animate__animated animate__fadeIn" id="theme-toggle" aria-label="Toggle theme">
+        <i class="fas fa-moon"></i>
+    </button>
+
+    <div class="container">
+        <div class="weather-container animate__animated animate__fadeIn">
+            <div class="header-section text-center mb-4">
+                <h1 class="greeting mb-2" id="greeting-text"></h1>
+                <div class="time-display">
+                    <span id="current-time" class="current-time"></span>
+                </div>
+            </div>
+            
+            <form action="/weather" method="POST" class="mb-2">
+                <div class="input-group">
+                    <input type="text" name="city" class="form-control" placeholder="Enter city name" required>
+                    <button type="submit" class="btn btn-primary">Search</button>
+                </div>
+            </form>
+            
+            <div class="text-center mb-4">
+                <button id="get-location" class="btn btn-outline-primary mt-2">
+                    <i class="fas fa-location-dot me-2"></i>Use My Location
+                </button>
+                <div class="form-check form-switch mt-2 d-flex justify-content-center">
+                    <input class="form-check-input me-2" type="checkbox" id="auto-detect-toggle">
+                    <label class="form-check-label" for="auto-detect-toggle">
+                        Automatically detect my location
+                    </label>
+                </div>
+                <p id="location-status" class="mt-2" style="display: none;"></p>
+            </div>
+
+            <% if (message && message.length > 0) { %>
+                <div class="alert alert-info animate__animated animate__fadeIn">
+                    <%= message %>
+                </div>
+            <% } %>
+
+            <% if (error) { %>
+                <div class="alert alert-danger animate__animated animate__shakeX">
+                    <%= error %>
+                </div>
+            <% } %>
+
+            <% if (weather) { %>
+                <div class="weather-info animate__animated animate__fadeIn">
+                    <div class="card">
+                        <div class="card-body">
+                            <h2 class="card-title text-center"><%= weather.name %>, <%= weather.sys.country %></h2>
+                            <div class="weather-details">
+                                <div class="temperature">
+                                    <h3 class="display-4 text-center"><%= Math.round(weather.main.temp) %>°C</h3>
+                                    <p class="text-center"><%= weather.weather[0].description %></p>
+                                    <div class="text-center">
+                                        <img src="https://openweathermap.org/img/wn/<%= weather.weather[0].icon %>@2x.png" alt="<%= weather.weather[0].description %>" class="weather-icon">
+                                    </div>
+                                </div>
+                                <div class="weather-stats">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <p><i class="fas fa-droplet me-2"></i><strong>Humidity:</strong> <%= weather.main.humidity %>%</p>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <p><i class="fas fa-wind me-2"></i><strong>Wind:</strong> <%= weather.wind.speed %> m/s</p>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <p><i class="fas fa-temperature-half me-2"></i><strong>Feels like:</strong> <%= Math.round(weather.main.feels_like) %>°C</p>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-3">
+                                        <div class="col-md-4">
+                                            <p><i class="fas fa-gauge me-2"></i><strong>Pressure:</strong> <%= weather.main.pressure %> hPa</p>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <p><i class="fas fa-cloud me-2"></i><strong>Cloudiness:</strong> <%= weather.clouds.all %>%</p>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <p><i class="fas fa-eye me-2"></i><strong>Visibility:</strong> <%= weather.visibility / 1000 %> km</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <% } %>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+</html> 
